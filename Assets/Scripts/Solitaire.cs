@@ -8,7 +8,8 @@ using UnityEngine;
 
 public class Solitaire : MonoBehaviour
 {
-   private const float BOTTOM_CARD_OFFSET = 0.54f;
+   private const float BOTTOM_CARD_FACE_UP_OFFSET = 0.4f;
+   private const float BOTTOM_CARD_FACE_DOWN_OFFSET = 0.2f;
    private const float Z_OFFSET = 0.03f;
    public GameObject cardPrefab;
    public GameObject[] bottomPositions;
@@ -60,7 +61,7 @@ public class Solitaire : MonoBehaviour
             newCardScript.suit = suit;
             newCardScript.isFaceUp = j == i;
 
-            yOffset += BOTTOM_CARD_OFFSET;
+            yOffset += BOTTOM_CARD_FACE_DOWN_OFFSET;
             zOffset += Z_OFFSET;
          }
       }
@@ -221,7 +222,7 @@ public class Solitaire : MonoBehaviour
       for (int i = 0; i < cards.Count; i++)
       {
          cards[i].transform.SetParent(newParent, true);
-         cards[i].transform.position = destination.transform.position + new Vector3(0, -BOTTOM_CARD_OFFSET * (i + (coverParent ? 0 : 1)), -Z_OFFSET * (i + 1));
+         cards[i].transform.position = destination.transform.position + new Vector3(0, -BOTTOM_CARD_FACE_UP_OFFSET * (i + (coverParent ? 0 : 1)), -Z_OFFSET * (i + 1));
       }
    }
 
