@@ -164,39 +164,52 @@ public class Solitaire : MonoBehaviour
 
    public void AutoMoveCards(List<GameObject> cards)
    {
-      // if (!cards.Any()) return;
-      // if (IsACardInABottomPile(cards.First()))
-      // {
-      //    MoveCardsFromBottom(cards, destination);
-      // }
-      // else if (IsACardInATopPile(cards.First()))
-      // {
-      //    MoveCardFromTop(cards, destination);
-      // }
-      // else if (IsSelectableDealtCard(cards.First()))
-      // {
-      //    MoveCardFromDealt(cards, destination);
-      // }
+      if (TryAutoMoveCardsToTop(cards)) return;
+      TryAutoMoveCardsToBottom(cards);
+   }
+
+   private bool TryAutoMoveCardsToTop(List<GameObject> cards)
+   {
+      if (cards.Count != 1) return false;
+      foreach (var parent in topPositions)
+      {
+         var destination = parent.transform.childCount == 0 ? parent : parent.transform.GetChildren().Last();
+         if (MoveToTopIsAllowed(cards, destination))
+         {
+            MoveCardsToTop(cards, destination);
+            return true;
+         }
+      }
+      return false;
+   }
+
+   private bool TryAutoMoveCardsToBottom(List<GameObject> cards)
+   {
+      foreach (var parent in bottomPositions)
+      {
+         var destination = parent.transform.childCount == 0 ? parent : parent.transform.GetChildren().Last();
+         if (MoveToBottomIsAllowed(cards, destination))
+         {
+            MoveCardsToBottom(cards, destination);
+            return true;
+         }
+      }
+      return false;
    }
 
    private static void MoveCardsToBottom(List<GameObject> cards, GameObject destination)
    {
       Transform newParent;
       bool coverParent;
-      var sourceCard = cards.First().GetComponent<Card>();
 
+      if(!MoveToBottomIsAllowed(cards, destination)) return;
       if (destination.CompareTag("Card"))
       {
-         var destCard = destination.GetComponent<Card>();
-         if (!((int)sourceCard.rank == (int)destCard.rank - 1 && sourceCard.suit.Color() != destCard.suit.Color())) return;
-
          newParent = destination.transform.parent;
          coverParent = false;
       }
       else if (destination.CompareTag("Bottom"))
       {
-         if (sourceCard.rank != Rank.King) return;
-
          newParent = destination.transform;
          coverParent = true;
       }
@@ -212,23 +225,33 @@ public class Solitaire : MonoBehaviour
       }
    }
 
-   private static void MoveCardsToTop(List<GameObject> cards, GameObject destination)
+   private static bool MoveToBottomIsAllowed(List<GameObject> cards, GameObject destination)
    {
-      Transform newParent;
       var sourceCard = cards.First().GetComponent<Card>();
 
-      if (cards.Count != 1) return;
       if (destination.CompareTag("Card"))
       {
          var destCard = destination.GetComponent<Card>();
-         if (sourceCard.suit != destCard.suit || (int)sourceCard.rank != (int)destCard.rank + 1) return;
+         if ((int)sourceCard.rank == (int)destCard.rank - 1 && sourceCard.suit.Color() != destCard.suit.Color()) return true;
+      }
+      else if (destination.CompareTag("Bottom"))
+      {
+         if (sourceCard.rank == Rank.King) return true;
+      }
+      return false;
+   }
 
+   private static void MoveCardsToTop(List<GameObject> cards, GameObject destination)
+   {
+      Transform newParent;
+
+      if (!MoveToTopIsAllowed(cards, destination)) return;
+      if (destination.CompareTag("Card"))
+      {
          newParent = destination.transform.parent;
       }
       else if (destination.CompareTag("Top"))
       {
-         if (sourceCard.rank != Rank.Ace) return;
-
          newParent = destination.transform;
       }
       else
@@ -238,6 +261,24 @@ public class Solitaire : MonoBehaviour
 
       cards.First().transform.SetParent(newParent, true);
       cards.First().transform.position = destination.transform.position + new Vector3(0, 0, -Z_OFFSET);
+   }
+
+   private static bool MoveToTopIsAllowed(List<GameObject> cards, GameObject destination)
+   {
+      if (cards.Count != 1) return false;
+
+      var sourceCard = cards.First().GetComponent<Card>();
+
+      if (destination.CompareTag("Card"))
+      {
+         var destCard = destination.GetComponent<Card>();
+         if (sourceCard.suit == destCard.suit && (int)sourceCard.rank == (int)destCard.rank + 1) return true;
+      }
+      else if (destination.CompareTag("Top"))
+      {
+         if (sourceCard.rank == Rank.Ace) return true;
+      }
+      return false;
    }
 
    public void FlipCard(GameObject card)
