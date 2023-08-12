@@ -151,17 +151,14 @@ public class Solitaire : MonoBehaviour
       if (!cards.Any()) return;
       if (destination.CompareTag("Card") && !destination.GetComponent<Card>().isFaceUp) return;
       if (destination.transform.parent == cards.FirstOrDefault()?.transform?.parent) return;
-      if (IsACardInABottomPile(cards.First()))
+
+      if (IsACardInABottomPile(destination) || destination.CompareTag("Bottom"))
       {
-         MoveCardsFromBottom(cards, destination);
+         MoveCardsToBottom(cards, destination);
       }
-      else if (IsACardInATopPile(cards.First()))
+      else if (IsACardInATopPile(destination) || destination.CompareTag("Top"))
       {
-         MoveCardFromTop(cards, destination);
-      }
-      else if (IsSelectableDealtCard(cards.First()))
-      {
-         MoveCardFromDealt(cards, destination);
+         MoveCardsToTop(cards, destination);
       }
    }
 
@@ -180,39 +177,6 @@ public class Solitaire : MonoBehaviour
       // {
       //    MoveCardFromDealt(cards, destination);
       // }
-   }
-
-   private static void MoveCardFromDealt(List<GameObject> card, GameObject destination)
-   {
-      if (IsACardInABottomPile(destination) || destination.CompareTag("Bottom"))
-      {
-         MoveCardsToBottom(card, destination);
-      }
-      else if (IsACardInATopPile(destination) || destination.CompareTag("Top"))
-      {
-         MoveCardsToTop(card, destination);
-      }
-
-   }
-
-   private static void MoveCardFromTop(List<GameObject> card, GameObject destination)
-   {
-      if (IsACardInABottomPile(destination) || destination.CompareTag("Bottom"))
-      {
-         MoveCardsToBottom(card, destination);
-      }
-   }
-
-   private static void MoveCardsFromBottom(List<GameObject> cards, GameObject destination)
-   {
-      if (IsACardInABottomPile(destination) || destination.CompareTag("Bottom"))
-      {
-         MoveCardsToBottom(cards, destination);
-      }
-      else if (IsACardInATopPile(destination) || destination.CompareTag("Top"))
-      {
-         MoveCardsToTop(cards, destination);
-      }
    }
 
    private static void MoveCardsToBottom(List<GameObject> cards, GameObject destination)
@@ -278,9 +242,9 @@ public class Solitaire : MonoBehaviour
 
    public void FlipCard(GameObject card)
    {
-      if (IsACardInABottomPile(card) && CardIsOnTopOfThePile(card))
+      var cardScript = card.GetComponent<Card>();
+      if (IsACardInABottomPile(card) && CardIsOnTopOfThePile(card) && !cardScript.isFaceUp)
       {
-         var cardScript = card.GetComponent<Card>();
          cardScript.isFaceUp = !cardScript.isFaceUp;
       }
    }
